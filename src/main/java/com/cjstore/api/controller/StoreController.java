@@ -39,22 +39,30 @@ public class StoreController {
             return ResponseEntity.badRequest().body("Error: Slug is already taken!");
         }
 
-        return userRepository.findById(ownerId).map(owner -> {
-            store.setOwner(owner);
-            Store savedStore = storeRepository.save(store);
-            return ResponseEntity.ok(savedStore);
-        }).orElse(ResponseEntity.badRequest().body("Error: Owner not found!"));
+        var ownerOpt = userRepository.findById(ownerId);
+        if (ownerOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Error: Owner not found!");
+        }
+
+        store.setOwner(ownerOpt.get());
+        Store savedStore = storeRepository.save(store);
+        return ResponseEntity.ok(savedStore);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateStore(@PathVariable UUID id, @RequestBody Store storeDetails) {
-        return storeRepository.findById(id).map(store -> {
-            store.setName(storeDetails.getName());
-            store.setWhatsapp(storeDetails.getWhatsapp());
-            store.setLogo(storeDetails.getLogo());
-            store.setDescription(storeDetails.getDescription());
-            store.setTheme(storeDetails.getTheme());
-            return ResponseEntity.ok(storeRepository.save(store));
-        }).orElse(ResponseEntity.notFound().build());
+        var storeOpt = storeRepository.findById(id);
+        if (storeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Store store = storeOpt.get();
+        store.setName(storeDetails.getName());
+        store.setWhatsapp(storeDetails.getWhatsapp());
+        store.setLogo(storeDetails.getLogo());
+        store.setDescription(storeDetails.getDescription());
+        store.setTheme(storeDetails.getTheme());
+        Store updatedStore = storeRepository.save(store);
+        return ResponseEntity.ok(updatedStore);
     }
 }

@@ -28,24 +28,31 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<?> createProduct(@RequestBody Product product, @RequestParam UUID storeId) {
-        return storeRepository.findById(storeId).map(store -> {
-            product.setStore(store);
-            return ResponseEntity.ok(productRepository.save(product));
-        }).orElse(ResponseEntity.badRequest().body("Error: Store not found!"));
+        var storeOpt = storeRepository.findById(storeId);
+        if (storeOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Error: Store not found!");
+        }
+        product.setStore(storeOpt.get());
+        Product savedProduct = productRepository.save(product);
+        return ResponseEntity.ok(savedProduct);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProduct(@PathVariable UUID id, @RequestBody Product productDetails) {
-        return productRepository.findById(id).map(product -> {
-            product.setName(productDetails.getName());
-            product.setDescription(productDetails.getDescription());
-            product.setPrice(productDetails.getPrice());
-            product.setCategory(productDetails.getCategory());
-            product.setStock(productDetails.getStock());
-            product.setImage(productDetails.getImage());
-            product.setActive(productDetails.getActive());
-            return ResponseEntity.ok(productRepository.save(product));
-        }).orElse(ResponseEntity.notFound().build());
+        var productOpt = productRepository.findById(id);
+        if (productOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Product product = productOpt.get();
+        product.setName(productDetails.getName());
+        product.setDescription(productDetails.getDescription());
+        product.setPrice(productDetails.getPrice());
+        product.setCategory(productDetails.getCategory());
+        product.setStock(productDetails.getStock());
+        product.setImage(productDetails.getImage());
+        product.setActive(productDetails.getActive());
+        Product updatedProduct = productRepository.save(product);
+        return ResponseEntity.ok(updatedProduct);
     }
 
     @DeleteMapping("/{id}")
