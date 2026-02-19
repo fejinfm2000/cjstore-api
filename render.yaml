@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: cjstore-api
+    env: docker
+    dockerfile: Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cjstore-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+databases:
+  - name: cjstore-db
+    plan: free
